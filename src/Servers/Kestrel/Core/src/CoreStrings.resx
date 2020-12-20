@@ -641,4 +641,7 @@ For more information on configuring HTTPS see https://go.microsoft.com/fwlink/?l
   <data name="FailedToOpenCertStore" xml:space="preserve">
     <value>Failed to open certificate store {StoreName}.</value>
   </data>
+  <data name="Http3StreamResetByApplication" xml:space="preserve">
+    <value>The HTTP/3 stream was reset by the application with error code {errorCode}.</value>
+  </data>
 </root>
