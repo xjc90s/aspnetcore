@@ -16,6 +16,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract ICollection<TagHelperDescriptor> Results { get; }
 
+        public TagHelperDiscoveryMode DiscoveryMode { get; set; } = TagHelperDiscoveryMode.All;
+
         public static TagHelperDescriptorProviderContext Create()
         {
             return new DefaultContext(new List<TagHelperDescriptor>());
