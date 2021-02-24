@@ -137,6 +137,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
             return null;
         }
 
+        protected Task WaitForConnectionStopAsync(int expectedLastStreamId, bool ignoreNonGoAwayFrames)
+        {
+            return WaitForConnectionErrorAsync(ignoreNonGoAwayFrames, expectedLastStreamId, Http3ErrorCode.NoError);
+        }
+
         internal async Task WaitForConnectionErrorAsync(bool ignoreNonGoAwayFrames, long expectedLastStreamId, Http3ErrorCode expectedErrorCode)
         {
             var frame = await _inboundControlStream.ReceiveFrameAsync();
@@ -158,6 +163,21 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
             var payload = frame.Payload;
             Assert.True(VariableLengthIntegerHelper.TryRead(payload.Span, out var streamId, out var _));
             Assert.Equal(expectedLastStreamId, streamId);
+        }
+
+        protected void AdvanceClock(TimeSpan timeSpan)
+        {
+            var clock = _serviceContext.MockSystemClock;
+            var endTime = clock.UtcNow + timeSpan;
+
+            while (clock.UtcNow + Heartbeat.Interval < endTime)
+            {
+                clock.UtcNow += Heartbeat.Interval;
+                _timeoutControl.Tick(clock.UtcNow);
+            }
+
+            clock.UtcNow = endTime;
+            _timeoutControl.Tick(clock.UtcNow);
         }
 
         protected async Task InitializeConnectionAsync(RequestDelegate application)
