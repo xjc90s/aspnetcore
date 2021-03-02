@@ -3,7 +3,6 @@
 
 using System.Buffers;
 using System.Net;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Experimental;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
@@ -38,6 +37,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal
         public IPEndPoint? LocalEndPoint { get; }
         public IPEndPoint? RemoteEndPoint { get; }
 
-        public ITimeoutControl TimeoutControl { get; set; } = default!; // Always set by HttpConnection
+        /// <summary>
+        /// Will be be set by unit tests or created by Http3Connection ctor.
+        /// </summary>
+        public ITimeoutControl? TimeoutControl { get; set; }
     }
 }

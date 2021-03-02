@@ -137,12 +137,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
             return null;
         }
 
-        protected Task WaitForConnectionStopAsync(int expectedLastStreamId, bool ignoreNonGoAwayFrames)
-        {
-            return WaitForConnectionErrorAsync(ignoreNonGoAwayFrames, expectedLastStreamId, Http3ErrorCode.NoError);
-        }
-
-        internal async Task WaitForConnectionErrorAsync(bool ignoreNonGoAwayFrames, long expectedLastStreamId, Http3ErrorCode expectedErrorCode)
+        protected async Task WaitForConnectionStopAsync(bool ignoreNonGoAwayFrames, long expectedLastStreamId)
         {
             var frame = await _inboundControlStream.ReceiveFrameAsync();
 
@@ -154,10 +149,10 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
                 }
             }
 
-            VerifyGoAway(frame, expectedLastStreamId, expectedErrorCode);
+            VerifyGoAway(frame, expectedLastStreamId);
         }
 
-        internal void VerifyGoAway(Http3FrameWithPayload frame, long expectedLastStreamId, Http3ErrorCode expectedErrorCode)
+        internal void VerifyGoAway(Http3FrameWithPayload frame, long expectedLastStreamId)
         {
             Assert.Equal(Http3FrameType.GoAway, frame.Type);
             var payload = frame.Payload;
@@ -204,9 +199,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
 
         protected void CreateConnection()
         {
-            var limits = _serviceContext.ServerOptions.Limits;
-
-
             MultiplexedConnectionContext = new TestMultiplexedConnectionContext(this);
 
             var httpConnectionContext = new Http3ConnectionContext(
@@ -510,6 +502,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
             public Http3ControlStream(ConnectionContext streamContext)
             {
                 StreamContext = streamContext;
+            }
+
+            internal async Task ExpectSettingsAsync()
+            {
+                var http3WithPayload = await ReceiveFrameAsync();
+                Assert.Equal(Http3FrameType.Settings, http3WithPayload.Type);
             }
 
             public async Task WriteStreamIdAsync(int id)

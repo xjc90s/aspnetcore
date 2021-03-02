@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
 
             Connection.Abort(new ConnectionAbortedException());
             await _closedStateReached.Task.DefaultTimeout();
-            await WaitForConnectionErrorAsync(ignoreNonGoAwayFrames: true, expectedLastStreamId: 0, expectedErrorCode: 0);
+            await WaitForConnectionStopAsync(ignoreNonGoAwayFrames: true, expectedLastStreamId: 0);
         }
 
         [Fact]
