@@ -20,51 +20,37 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
 {
     public class Http3TimeoutTests : Http3TestBase
     {
-        //[Fact]
-        //public async Task Preamble_NotReceivedInitially_WithinKeepAliveTimeout_ClosesConnection()
-        //{
-        //    var mockSystemClock = _serviceContext.MockSystemClock;
-        //    var limits = _serviceContext.ServerOptions.Limits;
-
-        //    _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
-
-        //    CreateConnection();
-
-        //    _connectionTask = Connection.ProcessStreamsAsync(new DummyApplication(_noopApplication));
-
-        //    AdvanceClock(limits.KeepAliveTimeout + Heartbeat.Interval);
-
-        //    _mockTimeoutHandler.Verify(h => h.OnTimeout(It.IsAny<TimeoutReason>()), Times.Never);
-
-        //    AdvanceClock(TimeSpan.FromTicks(1));
-
-        //    _mockTimeoutHandler.Verify(h => h.OnTimeout(TimeoutReason.KeepAlive), Times.Once);
-
-        //    await WaitForConnectionStopAsync(expectedLastStreamId: 0, ignoreNonGoAwayFrames: false);
-
-        //    _mockTimeoutHandler.VerifyNoOtherCalls();
-        //}
-
         [Fact]
-        public async Task HEADERS_NotReceivedInitially_WithinKeepAliveTimeout_ClosesConnection()
+        public async Task HEADERS_IncompleteFrameReceivedWithinRequestHeadersTimeout_AbortsConnection()
         {
+            var timerStartedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _mockTimeoutControl.Setup(tc => tc.SetTimeout(It.IsAny<long>(), TimeoutReason.RequestHeaders))
+                .Callback((long ticks, TimeoutReason reason) =>
+                {
+                    _timeoutControl.SetTimeout(ticks, reason);
+                    timerStartedTcs.SetResult();
+                });
             var mockSystemClock = _serviceContext.MockSystemClock;
             var limits = _serviceContext.ServerOptions.Limits;
 
             _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
 
-            await InitializeConnectionAsync(_noopApplication);
+            var requestStream = await InitializeConnectionAndStreamsAsync(_noopApplication);
 
             var controlStream = await GetInboundControlStream();
             await controlStream.ExpectSettingsAsync();
 
-            AdvanceClock(limits.KeepAliveTimeout + Heartbeat.Interval);
+            await timerStartedTcs.Task;
+
+            await requestStream.SendHeadersPartialAsync();
+
+            AdvanceClock(limits.RequestHeadersTimeout + Heartbeat.Interval);
 
             _mockTimeoutHandler.Verify(h => h.OnTimeout(It.IsAny<TimeoutReason>()), Times.Never);
 
             AdvanceClock(TimeSpan.FromTicks(1));
 
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(TimeoutReason.KeepAlive), Times.Once);
+            _mockTimeoutHandler.Verify(h => h.OnTimeout(TimeoutReason.RequestHeaders), Times.Once);
 
             await WaitForConnectionStopAsync(expectedLastStreamId: 0, ignoreNonGoAwayFrames: false);
 
@@ -72,166 +58,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
         }
 
         /*
-        [Fact]
-        public async Task HEADERS_NotReceivedAfterFirstRequest_WithinKeepAliveTimeout_ClosesConnection()
-        {
-            var mockSystemClock = _serviceContext.MockSystemClock;
-            var limits = _serviceContext.ServerOptions.Limits;
-
-            _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
-
-            await InitializeConnectionAsync(_noopApplication);
-
-            StartHeartbeat();
-
-            AdvanceClock(limits.KeepAliveTimeout + Heartbeat.Interval);
-
-            // keep-alive timeout set but not fired.
-            _mockTimeoutControl.Verify(c => c.SetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Once);
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(It.IsAny<TimeoutReason>()), Times.Never);
-
-            // The KeepAlive timeout is set when the stream completes processing on a background thread, so we need to hook the
-            // keep-alive set afterwards to make a reliable test.
-            var setTimeoutTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            _mockTimeoutControl.Setup(c => c.SetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive)).Callback<long, TimeoutReason>((t, r) =>
-            {
-                _timeoutControl.SetTimeout(t, r);
-                setTimeoutTcs.SetResult();
-            });
-
-            // Send continuation frame to verify intermediate request header timeout doesn't interfere with keep-alive timeout.
-            await SendHeadersAsync(1, Http2HeadersFrameFlags.END_STREAM, _browserRequestHeaders);
-            await SendEmptyContinuationFrameAsync(1, Http2ContinuationFrameFlags.END_HEADERS);
-
-            _mockTimeoutControl.Verify(c => c.SetTimeout(It.IsAny<long>(), TimeoutReason.RequestHeaders), Times.Once);
-
-            await ExpectAsync(Http2FrameType.HEADERS,
-                withLength: 36,
-                withFlags: (byte)(Http2HeadersFrameFlags.END_HEADERS | Http2HeadersFrameFlags.END_STREAM),
-                withStreamId: 1);
-
-            await setTimeoutTcs.Task.DefaultTimeout();
-
-            AdvanceClock(limits.KeepAliveTimeout + Heartbeat.Interval);
-
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(It.IsAny<TimeoutReason>()), Times.Never);
-
-            AdvanceClock(TimeSpan.FromTicks(1));
-
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(TimeoutReason.KeepAlive), Times.Once);
-
-            await WaitForConnectionStopAsync(expectedLastStreamId: 1, ignoreNonGoAwayFrames: false);
-
-            _mockTimeoutHandler.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public async Task PING_WithinKeepAliveTimeout_ResetKeepAliveTimeout()
-        {
-            var mockSystemClock = _serviceContext.MockSystemClock;
-            var limits = _serviceContext.ServerOptions.Limits;
-
-            _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
-
-            CreateConnection();
-
-            await InitializeConnectionAsync(_noopApplication);
-
-            // Connection starts and sets keep alive timeout
-            _mockTimeoutControl.Verify(c => c.SetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Once);
-            _mockTimeoutControl.Verify(c => c.ResetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Never);
-
-            await SendPingAsync(Http2PingFrameFlags.NONE);
-            await ExpectAsync(Http2FrameType.PING,
-                withLength: 8,
-                withFlags: (byte)Http2PingFrameFlags.ACK,
-                withStreamId: 0);
-
-            // Server resets keep alive timeout
-            _mockTimeoutControl.Verify(c => c.ResetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Once);
-        }
-
-        [Fact]
-        public async Task PING_NoKeepAliveTimeout_DoesNotResetKeepAliveTimeout()
-        {
-            var mockSystemClock = _serviceContext.MockSystemClock;
-            var limits = _serviceContext.ServerOptions.Limits;
-
-            _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
-
-            CreateConnection();
-
-            await InitializeConnectionAsync(_echoApplication);
-
-            // Connection starts and sets keep alive timeout
-            _mockTimeoutControl.Verify(c => c.SetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Once);
-            _mockTimeoutControl.Verify(c => c.ResetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Never);
-            _mockTimeoutControl.Verify(c => c.CancelTimeout(), Times.Never);
-
-            // Stream will stay open because it is waiting for request body to end
-            await StartStreamAsync(1, _browserRequestHeaders, endStream: false);
-
-            // Starting a stream cancels the keep alive timeout
-            _mockTimeoutControl.Verify(c => c.CancelTimeout(), Times.Once);
-
-            await SendPingAsync(Http2PingFrameFlags.NONE);
-            await ExpectAsync(Http2FrameType.PING,
-                withLength: 8,
-                withFlags: (byte)Http2PingFrameFlags.ACK,
-                withStreamId: 0);
-
-            // Server doesn't reset keep alive timeout because it isn't running
-            _mockTimeoutControl.Verify(c => c.ResetTimeout(It.IsAny<long>(), TimeoutReason.KeepAlive), Times.Never);
-
-            // End stream
-            await SendDataAsync(1, _helloWorldBytes, endStream: true);
-            await ExpectAsync(Http2FrameType.HEADERS,
-                withLength: 32,
-                withFlags: (byte)Http2HeadersFrameFlags.END_HEADERS,
-                withStreamId: 1);
-            await ExpectAsync(Http2FrameType.DATA,
-                withLength: _helloWorldBytes.Length,
-                withFlags: (byte)Http2DataFrameFlags.NONE,
-                withStreamId: 1);
-        }
-
-        [Fact]
-        public async Task HEADERS_ReceivedWithoutAllCONTINUATIONs_WithinRequestHeadersTimeout_AbortsConnection()
-        {
-            var mockSystemClock = _serviceContext.MockSystemClock;
-            var limits = _serviceContext.ServerOptions.Limits; ;
-
-            _timeoutControl.Initialize(mockSystemClock.UtcNow.Ticks);
-
-            await InitializeConnectionAsync(_noopApplication);
-
-            await SendHeadersAsync(1, Http2HeadersFrameFlags.END_STREAM, _browserRequestHeaders);
-
-            await SendEmptyContinuationFrameAsync(1, Http2ContinuationFrameFlags.NONE);
-
-            AdvanceClock(limits.RequestHeadersTimeout + Heartbeat.Interval);
-
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(It.IsAny<TimeoutReason>()), Times.Never);
-
-            await SendEmptyContinuationFrameAsync(1, Http2ContinuationFrameFlags.NONE);
-
-            AdvanceClock(TimeSpan.FromTicks(1));
-
-            _mockTimeoutHandler.Verify(h => h.OnTimeout(TimeoutReason.RequestHeaders), Times.Once);
-
-            await WaitForConnectionErrorAsync<Microsoft.AspNetCore.Http.BadHttpRequestException>(
-                ignoreNonGoAwayFrames: false,
-                expectedLastStreamId: int.MaxValue,
-                Http2ErrorCode.INTERNAL_ERROR,
-                CoreStrings.BadRequest_RequestHeadersTimeout);
-
-            _mockConnectionContext.Verify(c => c.Abort(It.Is<ConnectionAbortedException>(e =>
-                 e.Message == CoreStrings.BadRequest_RequestHeadersTimeout)), Times.Once);
-
-            _mockTimeoutHandler.VerifyNoOtherCalls();
-            _mockConnectionContext.VerifyNoOtherCalls();
-        }
-
         [Fact]
         public async Task ResponseDrain_SlowerThanMinimumDataRate_AbortsConnection()
         {

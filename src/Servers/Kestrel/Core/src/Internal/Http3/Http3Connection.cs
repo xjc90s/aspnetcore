@@ -220,6 +220,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                     SendGoAway(_highestOpenedStreamId);
                     break;
                 case TimeoutReason.RequestHeaders:
+                    SendGoAway(_highestOpenedStreamId);
+                    break;
                 case TimeoutReason.ReadDataRate:
                 case TimeoutReason.WriteDataRate:
                 case TimeoutReason.RequestBodyDrain:
@@ -245,7 +247,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
             // TODO should we await the control stream task?
             var controlTask = CreateControlStream(application);
 
-            TimeoutControl.SetTimeout(Limits.KeepAliveTimeout.Ticks, TimeoutReason.KeepAlive);
+            //TimeoutControl.SetTimeout(Limits.KeepAliveTimeout.Ticks, TimeoutReason.KeepAlive);
 
             try
             {
@@ -289,6 +291,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                         }
                         else
                         {
+                            // Request stream
                             var streamId = streamIdFeature.StreamId;
 
                             HighestStreamId = streamId;
@@ -300,6 +303,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                                 _activeRequestCount++;
                                 _streams[streamId] = http3Stream;
                             }
+
                             KestrelEventSource.Log.RequestQueuedStart(stream, AspNetCore.Http.HttpProtocol.Http3);
                             ThreadPool.UnsafeQueueUserWorkItem(stream, preferLocal: false);
                         }
@@ -365,7 +369,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                         await _streamCompletionAwaitable;
                     }
 
-                    TimeoutControl.CancelTimeout();
+                    //TimeoutControl.CancelTimeout();
                 }
                 catch
                 {
@@ -413,14 +417,14 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                 }
                 else
                 {
-                    // TODO should keep-alive timeout be a thing for HTTP/3? MsQuic currently tracks this for us?
-                    if (TimeoutControl.TimerReason == TimeoutReason.None)
-                    {
-                        TimeoutControl.SetTimeout(Limits.KeepAliveTimeout.Ticks, TimeoutReason.KeepAlive);
-                    }
+                    //// TODO should keep-alive timeout be a thing for HTTP/3? MsQuic currently tracks this for us?
+                    //if (TimeoutControl.TimerReason == TimeoutReason.None)
+                    //{
+                    //    TimeoutControl.SetTimeout(Limits.KeepAliveTimeout.Ticks, TimeoutReason.KeepAlive);
+                    //}
 
-                    // Only reason should be keep-alive.
-                    Debug.Assert(TimeoutControl.TimerReason == TimeoutReason.KeepAlive);
+                    //// Only reason should be keep-alive.
+                    //Debug.Assert(TimeoutControl.TimerReason == TimeoutReason.KeepAlive);
                 }
             }
         }

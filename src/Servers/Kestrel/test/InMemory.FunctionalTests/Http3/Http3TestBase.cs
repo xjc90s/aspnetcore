@@ -34,7 +34,7 @@ using static Microsoft.AspNetCore.Server.Kestrel.Core.Tests.Http2TestBase;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
 {
-    public class Http3TestBase : TestApplicationErrorLoggerLoggedTest, IDisposable
+    public abstract class Http3TestBase : TestApplicationErrorLoggerLoggedTest, IDisposable
     {
         internal TestServiceContext _serviceContext;
         internal readonly TimeoutControl _timeoutControl;
@@ -394,6 +394,17 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
                 return done;
             }
 
+            internal async Task SendHeadersPartialAsync()
+            {
+                // Send HEADERS frame header without content.
+                var outputWriter = _pair.Application.Output;
+                var frame = new Http3RawFrame();
+                frame.PrepareData();
+                frame.Length = 10;
+                Http3FrameWriter.WriteHeader(frame, outputWriter);
+                await SendAsync(Span<byte>.Empty);
+            }
+
             internal async Task SendDataAsync(Memory<byte> data, bool endStream = false)
             {
                 var outputWriter = _pair.Application.Output;
@@ -496,7 +507,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
                 var inputPipeOptions = GetInputPipeOptions(_testBase._serviceContext, _testBase._memoryPool, PipeScheduler.ThreadPool);
                 var outputPipeOptions = GetOutputPipeOptions(_testBase._serviceContext, _testBase._memoryPool, PipeScheduler.ThreadPool);
                 _pair = DuplexPipe.CreateConnectionPair(inputPipeOptions, outputPipeOptions);
-                StreamContext = new TestStreamContext(canRead: false, canWrite: true, _pair, this);
+                StreamContext = new TestStreamContext(canRead: true, canWrite: false, _pair, this);
             }
 
             public Http3ControlStream(ConnectionContext streamContext)

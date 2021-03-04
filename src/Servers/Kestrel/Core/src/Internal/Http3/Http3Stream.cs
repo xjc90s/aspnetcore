@@ -345,6 +345,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
 
         public async Task ProcessRequestAsync<TContext>(IHttpApplication<TContext> application) where TContext : notnull
         {
+            // Start request header timeout. Reset when headers are received by a request stream.
+            if (TimeoutControl.TimerReason == TimeoutReason.None)
+            {
+                TimeoutControl.SetTimeout(Limits.RequestHeadersTimeout.Ticks, TimeoutReason.RequestHeaders);
+            }
+
             Exception? error = null;
 
             try
@@ -478,6 +484,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                 // trailers
                 // TODO figure out if there is anything else to do here.
                 return Task.CompletedTask;
+            }
+
+            if (TimeoutControl.TimerReason == TimeoutReason.RequestHeaders)
+            {
+                TimeoutControl.CancelTimeout();
             }
 
             _receivedHeaders = true;
