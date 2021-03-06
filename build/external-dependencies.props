@@ -80,20 +80,20 @@
     <ExternalDependency Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
     <ExternalDependency Include="Internal.AspNetCore.Sdk" Version="$(InternalAspNetCoreSdkPackageVersion)" />
     <ExternalDependency Include="Internal.AspNetCore.SiteExtension.Sdk" Version="$(InternalAspNetCoreSiteExtensionSdkPackageVersion)" />
-    <ExternalDependency Include="Libuv" Version="$(LibuvPackageVersion)" AllMetapackage="true" />
-    <ExternalDependency Include="Microsoft.ApplicationInsights.AspNetCore" Version="$(MicrosoftApplicationInsightsAspNetCorePackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="Libuv" Version="$(LibuvPackageVersion)" />
+    <ExternalDependency Include="Microsoft.ApplicationInsights.AspNetCore" Version="$(MicrosoftApplicationInsightsAspNetCorePackageVersion)" />
     <ExternalDependency Include="Microsoft.AspNet.Identity.EntityFramework" Version="$(MicrosoftAspNetIdentityEntityFrameworkPackageVersion)" />
     <ExternalDependency Include="Microsoft.AspNet.WebApi.Client" Version="$(MicrosoftAspNetWebApiClientPackageVersion)" AppMetapackage="true" AllMetapackage="true"/>
     <ExternalDependency Include="Microsoft.Azure.DocumentDB.Core" Version="$(MicrosoftAzureDocumentDBCorePackageVersion)" />
-    <ExternalDependency Include="Microsoft.Azure.KeyVault" Version="$(MicrosoftAzureKeyVaultPackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="Microsoft.Azure.KeyVault" Version="$(MicrosoftAzureKeyVaultPackageVersion)" />
     <ExternalDependency Include="Microsoft.Azure.Management.Fluent" Version="$(MicrosoftAzureManagementFluentPackageVersion)" />
-    <ExternalDependency Include="Microsoft.Azure.Services.AppAuthentication" Version="$(MicrosoftAzureServicesAppAuthenticationPackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="Microsoft.Azure.Services.AppAuthentication" Version="$(MicrosoftAzureServicesAppAuthenticationPackageVersion)" />
     <ExternalDependency Include="Microsoft.Build" Version="$(MicrosoftBuildPackageVersion)" />
     <ExternalDependency Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkPackageVersion)" />
     <ExternalDependency Include="Microsoft.Build.Runtime" Version="$(MicrosoftBuildRuntimePackageVersion)" />
     <ExternalDependency Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCorePackageVersion)" />
     <ExternalDependency Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildUtilitiesCorePackageVersion)" />
-    <ExternalDependency Include="Microsoft.Data.OData" Version="$(MicrosoftDataODataPackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="Microsoft.Data.OData" Version="$(MicrosoftDataODataPackageVersion)" />
     <ExternalDependency Include="Microsoft.Data.Services.Client" Version="$(MicrosoftDataServicesClientPackageVersion)" />
 
 
@@ -103,7 +103,7 @@
     <!-- Razor uses a custom version of roslyn packages -->
     <ExternalDependency Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonPackageVersion)" />
     <ExternalDependency Include="Microsoft.CodeAnalysis.Common" Version="$(VSIX_MicrosoftCodeAnalysisCommonPackageVersion)" VariableName="VSIX_MicrosoftCodeAnalysisCommonPackageVersion" />
-    <ExternalDependency Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpPackageVersion)" />
     <ExternalDependency Include="Microsoft.CodeAnalysis.CSharp" Version="$(VSIX_MicrosoftCodeAnalysisCSharpPackageVersion)" VariableName="VSIX_MicrosoftCodeAnalysisCSharpPackageVersion" />
     <ExternalDependency Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(VSIX_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" VariableName="VSIX_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion" />
     <ExternalDependency Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion)" />
@@ -117,9 +117,9 @@
     <ExternalDependency Include="Microsoft.DotNet.ProjectModel" Version="$(MicrosoftDotNetProjectModelPackageVersion)" />
     <ExternalDependency Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativePackageVersion)" />
     <ExternalDependency Include="Microsoft.Extensions.DependencyModel" Version="$(MicrosoftExtensionsDependencyModelPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
-    <ExternalDependency Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="$(MicrosoftIdentityModelClientsActiveDirectoryPackageVersion)" AllMetapackage="true" />
-    <ExternalDependency Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="$(MicrosoftIdentityModelProtocolsOpenIdConnectPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
-    <ExternalDependency Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="$(MicrosoftIdentityModelProtocolsWsFederationPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="$(MicrosoftIdentityModelClientsActiveDirectoryPackageVersion)" />
+    <ExternalDependency Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="$(MicrosoftIdentityModelProtocolsOpenIdConnectPackageVersion)" />
+    <ExternalDependency Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="$(MicrosoftIdentityModelProtocolsWsFederationPackageVersion)" />
     <ExternalDependency Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPackageVersion)" />
 
     <!-- Multiple versions of this package required to support all netcoreapp versions -->
@@ -155,7 +155,7 @@
     <ExternalDependency Include="Mono.Addins" Version="$(MonoAddinsPackageVersion)" />
     <ExternalDependency Include="MonoDevelop.Sdk" Version="$(MonoDevelopSdkPackageVersion)" />
     <ExternalDependency Include="Moq" Version="$(MoqPackageVersion)" />
-    <ExternalDependency Include="MessagePack" Version="$(MessagePackPackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="MessagePack" Version="$(MessagePackPackageVersion)" />
 
     <!-- netstandard1.x -->
     <ExternalDependency Include="NETStandard.Library" Version="$(NETStandard16PackageVersion)" VariableName="NETStandard16PackageVersion" />
@@ -163,24 +163,24 @@
     <ExternalDependency Include="NETStandard.Library" Version="$(NETStandardLibrary20PackageVersion)" VariableName="NETStandardLibrary20PackageVersion" />
 
     <!-- This version should be used by runtime packages -->
-    <ExternalDependency Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <!-- This version is required by MSBuild tasks or Visual Studio extensions. -->
     <ExternalDependency Include="Newtonsoft.Json" Version="$(VisualStudio_NewtonsoftJsonPackageVersion)" VariableName="VisualStudio_NewtonsoftJsonPackageVersion" />
 
-    <ExternalDependency Include="Newtonsoft.Json.Bson" Version="$(NewtonsoftJsonBsonPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="Newtonsoft.Json.Bson" Version="$(NewtonsoftJsonBsonPackageVersion)" />
     <ExternalDependency Include="NuGet.Frameworks" Version="$(NuGetFrameworksPackageVersion)" />
     <ExternalDependency Include="Oracle.ManagedDataAccess" Version="$(OracleManagedDataAccessPackageVersion)" />
-    <ExternalDependency Include="Remotion.Linq" Version="$(RemotionLinqPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="Remotion.Linq" Version="$(RemotionLinqPackageVersion)" />
     <ExternalDependency Include="Selenium.Firefox.WebDriver" Version="$(SeleniumFirefoxWebDriverPackageVersion)" />
     <ExternalDependency Include="Selenium.Support" Version="$(SeleniumSupportPackageVersion)" />
     <ExternalDependency Include="Selenium.WebDriver.MicrosoftDriver" Version="$(SeleniumWebDriverMicrosoftDriverPackageVersion)" />
     <ExternalDependency Include="Selenium.WebDriver" Version="$(SeleniumWebDriverPackageVersion)" />
     <ExternalDependency Include="Serilog.Extensions.Logging" Version="$(SerilogExtensionsLoggingPackageVersion)" />
     <ExternalDependency Include="Serilog.Sinks.File" Version="$(SerilogSinksFilePackageVersion)" />
-    <ExternalDependency Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawBundleGreenPackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawBundleGreenPackageVersion)" />
     <ExternalDependency Include="SQLitePCLRaw.bundle_sqlcipher" Version="$(SQLitePCLRawBundleSqlcipherPackageVersion)" />
-    <ExternalDependency Include="SQLitePCLRaw.core" Version="$(SQLitePCLRawCorePackageVersion)" AllMetapackage="true" />
-    <ExternalDependency Include="StackExchange.Redis.StrongName" Version="$(StackExchangeRedisStrongNamePackageVersion)" AllMetapackage="true" />
+    <ExternalDependency Include="SQLitePCLRaw.core" Version="$(SQLitePCLRawCorePackageVersion)" />
+    <ExternalDependency Include="StackExchange.Redis.StrongName" Version="$(StackExchangeRedisStrongNamePackageVersion)" />
     <ExternalDependency Include="StreamJsonRpc" Version="$(StreamJsonRpcPackageVersion)" />
     <ExternalDependency Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPackageVersion)" />
     <ExternalDependency Include="System.Buffers" Version="$(SystemBuffersPackageVersion)" />
@@ -189,8 +189,8 @@
     <ExternalDependency Include="System.Data.SqlClient" Version="$(SystemDataSqlClientPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
     <ExternalDependency Include="System.Diagnostics.DiagnosticSource" Version="$(SystemDiagnosticsDiagnosticSourcePackageVersion)" />
     <ExternalDependency Include="System.Diagnostics.EventLog" Version="$(SystemDiagnosticsEventLogPackageVersion)" />
-    <ExternalDependency Include="System.IdentityModel.Tokens.Jwt" Version="$(SystemIdentityModelTokensJwtPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
-    <ExternalDependency Include="System.Interactive.Async" Version="$(SystemInteractiveAsyncPackageVersion)" AllMetapackage="true" AppMetapackage="true" />
+    <ExternalDependency Include="System.IdentityModel.Tokens.Jwt" Version="$(SystemIdentityModelTokensJwtPackageVersion)" />
+    <ExternalDependency Include="System.Interactive.Async" Version="$(SystemInteractiveAsyncPackageVersion)" />
     <ExternalDependency Include="System.IO.Pipelines" Version="$(SystemIOPipelinesPackageVersion)" AppMetapackage="true" AllMetapackage="true" MetapackageVersionRangeType="Minimum" />
     <ExternalDependency Include="System.Memory" Version="$(SystemMemoryPackageVersion)" />
     <ExternalDependency Include="System.Net.Http.WinHttpHandler" Version="$(SystemNetHttpWinHttpHandlerPackageVersion)" />
