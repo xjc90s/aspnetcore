@@ -222,6 +222,11 @@
     <ExternalDependency Include="xunit.extensibility.execution" Version="$(XunitExtensibilityExecutionPackageVersion)" />
     <ExternalDependency Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualstudioPackageVersion)" />
     <ExternalDependency Include="xunit" Version="$(XunitPackageVersion)" />
+
+    <!-- Dependencies listed only to include otherwise-transitive references in Microsoft.AspNetCore.App.nuspec. -->
+    <ExternalDependency Include="Microsoft.DotNet.PlatformAbstractions" Version="$(MicrosoftDotNetPlatformAbstractionsPackageVersion)" />
+    <ExternalDependency Include="System.Security.Cryptography.Pkcs" Version="$(SystemSecurityCryptographyPkcsPackageVersion)" />
+    <ExternalDependency Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesPackageVersion)" />
   </ItemGroup>
 
 </Project>
