@@ -9,7 +9,7 @@ using BasicTestApp.RouterTest;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure.ServerFixtures;
 using Microsoft.AspNetCore.E2ETesting;
-using Microsoft.AspNetCore.Testing;
+using Microsoft.AspNetCore.InternalTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using Xunit.Abstractions;
@@ -26,9 +26,12 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     {
     }
 
+    public override Task InitializeAsync()
+        => InitializeAsync(BrowserFixture.RoutingTestContext);
+
     protected override void InitializeAsyncCore()
     {
-        Navigate(ServerPathBase, noReload: false);
+        Navigate(ServerPathBase);
         Browser.WaitUntilTestSelectorReady();
     }
 
@@ -418,7 +421,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
 
         // Because this was client-side navigation, we didn't lose the state in the test selector
-        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetAttribute("value"));
+        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetDomProperty("value"));
     }
 
     [Fact]
@@ -435,7 +438,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Because this was a full-page load, our element references should no longer be valid
         Assert.Throws<StaleElementReferenceException>(() =>
         {
-            testSelector.SelectedOption.GetAttribute("value");
+            testSelector.SelectedOption.GetDomProperty("value");
         });
     }
 
@@ -471,7 +474,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
 
         // We check if we had a force load
         Assert.Throws<StaleElementReferenceException>(() =>
-            testSelector.SelectedOption.GetAttribute("value"));
+            testSelector.SelectedOption.GetDomProperty("value"));
 
         // But still we should be able to navigate back, and end up at the "/ProgrammaticNavigationCases" page
         Browser.Navigate().Back();
@@ -504,7 +507,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         AssertHighlightedLinks("Default (matches all)", "Default with base-relative URL (matches all)");
 
         // Because this was all with client-side navigation, we didn't lose the state in the test selector
-        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetAttribute("value"));
+        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetDomProperty("value"));
     }
 
     [Fact]
@@ -543,14 +546,14 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         AssertHighlightedLinks("Programmatic navigation cases");
 
         // Because this was client-side navigation, we didn't lose the state in the test selector
-        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetAttribute("value"));
+        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetDomProperty("value"));
 
         app.FindElement(By.Id("do-other-navigation-forced")).Click();
         Browser.True(() => Browser.Url.EndsWith("/Other", StringComparison.Ordinal));
 
         // We check if we had a force load
         Assert.Throws<StaleElementReferenceException>(() =>
-            testSelector.SelectedOption.GetAttribute("value"));
+            testSelector.SelectedOption.GetDomProperty("value"));
 
         // But still we should be able to navigate back, and end up at the "/ProgrammaticNavigationCases" page
         Browser.Navigate().Back();
@@ -582,7 +585,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         AssertHighlightedLinks("Default (matches all)", "Default with base-relative URL (matches all)");
 
         // Because this was all with client-side navigation, we didn't lose the state in the test selector
-        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetAttribute("value"));
+        Assert.Equal(typeof(TestRouter).FullName, testSelector.SelectedOption.GetDomProperty("value"));
     }
 
     [Fact]
@@ -603,7 +606,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
 
         // We check if we had a force load
         Assert.Throws<StaleElementReferenceException>(() =>
-            testSelector.SelectedOption.GetAttribute("value"));
+            testSelector.SelectedOption.GetDomProperty("value"));
 
         // After we press back, we should end up at the "/" page so we know browser history has been replaced
         Browser.Navigate().Back();
@@ -859,7 +862,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
         var relativeCanceledUri = "/mycanceledtestpath";
         var expectedCanceledAbsoluteUri = $"{_serverFixture.RootUri}subdir{relativeCanceledUri}";
@@ -955,7 +958,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
         var expectedCanceledRelativeUri = $"/subdir/some-path-0";
 
@@ -1000,7 +1003,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         var expectedCanceledAbsoluteUri = $"{_serverFixture.RootUri}subdir/some-path-0";
@@ -1082,6 +1085,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
+    [QuarantinedTest("https://github.com/dotnet/aspnetcore/issues/57153")]
     public void NavigationLock_CanBlockExternalNavigation()
     {
         SetUrlViaPushState("/");
@@ -1182,7 +1186,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         Browser.FindElement(By.Id("programmatic-navigation")).Click();
@@ -1211,7 +1215,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         Browser.FindElement(By.Id("internal-link-navigation")).Click();
@@ -1286,6 +1290,18 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         app.FindElement(By.Id("go-to-longpage2")).Click();
         Browser.Equal("This is another long page you can scroll.", () => app.FindElement(By.Id("test-info")).Text);
         Browser.Equal(0, () => BrowserScrollY);
+    }
+
+    [Fact]
+    public void Refresh_FullyReloadsTheCurrentPage()
+    {
+        SetUrlViaPushState("/");
+
+        Browser.MountTestComponent<NavigationManagerComponent>();
+        Browser.FindElement(By.Id("programmatic-refresh")).Click();
+
+        // If the page fully reloads, the NavigationManagerComponent will no longer be mounted
+        Browser.DoesNotExist(By.Id("programmatic-refresh"));
     }
 
     [Fact]
@@ -1525,7 +1541,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
-    public void CanNavigateBetweenPagesWithQueryStrings()
+    public void CanNavigateWithinPageWithQueryStrings()
     {
         SetUrlViaPushState("/");
 
@@ -1575,6 +1591,30 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
+    public void CanNavigateBetweenDifferentPagesWithQueryStrings()
+    {
+        SetUrlViaPushState("/");
+
+        // Navigate between pages with the same querystring parameter "l" for LongValues and GuidValue.
+        // https://github.com/dotnet/aspnetcore/issues/52483
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("With query parameters (none)")).Click();
+        app.FindElement(By.LinkText("With IntValue and LongValues")).Click();
+        app.FindElement(By.LinkText("Another page with GuidValue")).Click();
+
+        Browser.Equal("8b7ae9ee-de22-4dd0-8fa1-b31e66abcc79", () => app.FindElement(By.Id("value-QueryGuid")).Text);
+        // Verify that OnParametersSet was only called once.
+        Browser.Equal("1", () => app.FindElement(By.Id("param-set-count")).Text);
+
+        app.FindElement(By.LinkText("Another page with LongValues")).Click();
+        Assert.Equal("3 values (50, 100, -20)", app.FindElement(By.Id("value-LongValues")).Text);
+
+        // We can also click back to go the preceding query while retaining the same component instance.
+        Browser.Navigate().Back();
+        Browser.Equal("8b7ae9ee-de22-4dd0-8fa1-b31e66abcc79", () => app.FindElement(By.Id("value-QueryGuid")).Text);
+    }
+
+    [Fact]
     public void AnchorWithHrefContainingHashSamePage_ScrollsToElementOnTheSamePage()
     {
         SetUrlViaPushState("/");
@@ -1591,7 +1631,54 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
-    [QuarantinedTest("https://github.com/dotnet/aspnetcore/issues/47967")]
+    public void AnchorWithHrefToSameUrlWithQueryAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("anchor-test1-with-query")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash?color=green&number=123#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
+    public void AnchorWithHrefToSameUrlWithParamAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("anchor-test1-with-param")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash/11#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
+    public void AnchorWithHrefToSameUrlWithParamQueryAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("anchor-test1-with-param-and-query")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash/11?color=green&number=123#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
     public void AnchorWithHrefContainingHashAnotherPage_NavigatesToPageAndScrollsToElement()
     {
         SetUrlViaPushState("/");
@@ -1608,8 +1695,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
-    [QuarantinedTest("https://github.com/dotnet/aspnetcore/issues/47967")]
-    public void NavigationManagerNavigateToSameUrlWithHash_ScrollsToElementOnTheSamePage()
+    public void NavigationManagerNavigateToAnotherUrlWithHash_NavigatesToPageAndScrollsToElement()
     {
         SetUrlViaPushState("/");
         var app = Browser.MountTestComponent<TestRouter>();
@@ -1625,7 +1711,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
     }
 
     [Fact]
-    public void NavigationManagerNavigateToAnotherUrlWithHash_NavigatesToPageAndScrollsToElement()
+    public void NavigationManagerNavigateToSameUrlWithHash_ScrollsToElementOnTheSamePage()
     {
         SetUrlViaPushState("/");
         var app = Browser.MountTestComponent<TestRouter>();
@@ -1637,6 +1723,54 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
         var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
         Assert.Equal("subdir/LongPageWithHash#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
+    public void NavigationManagerNavigateToSameUrlWithQueryAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("navigate-test1-with-query")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash?color=green&number=123#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
+    public void NavigationManagerNavigateToSameUrlWithParamAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("navigate-test1-with-param")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash/22#test1", currentRelativeUrl);
+        Assert.Equal(test1VerticalLocation, currentWindowScrollY);
+    }
+
+    [Fact]
+    public void NavigationManagerNavigateToSameUrlWithParamQueryAndHash_ScrollsToElementOnTheSamePage()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Long page with hash")).Click();
+
+        app.FindElement(By.Id("navigate-test1-with-param-and-query")).Click();
+
+        var currentWindowScrollY = BrowserScrollY;
+        var test1VerticalLocation = app.FindElement(By.Id("test1")).Location.Y;
+        var currentRelativeUrl = _serverFixture.RootUri.MakeRelativeUri(new Uri(Browser.Url)).ToString();
+        Assert.Equal("subdir/LongPageWithHash/22?color=green&number=123#test1", currentRelativeUrl);
         Assert.Equal(test1VerticalLocation, currentWindowScrollY);
     }
 
@@ -1675,5 +1809,20 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         Browser.Equal(linkTexts, () => Browser
             .FindElements(By.CssSelector("a.active"))
             .Select(x => x.Text));
+    }
+
+    [Fact]
+    public void ClickOnAnchorInsideSVGElementGetsIntercepted()
+    {
+        SetUrlViaPushState("/");
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.LinkText("Anchor inside SVG Element")).Click();
+
+        Browser.Equal("0", () => Browser.Exists(By.Id("location-changed-count")).Text);
+
+        Browser.FindElement(By.Id("svg-link")).Click();
+
+        // If the click was intercepted then LocationChanged works
+        Browser.Equal("1", () => Browser.Exists(By.Id("location-changed-count")).Text);
     }
 }
